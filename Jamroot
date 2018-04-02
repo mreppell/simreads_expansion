@@ -1,0 +1,240 @@
+#
+# Jamroot
+#
+# Darren Kessner
+# Novembre Lab, UCLA
+#
+
+
+import testing ; # unit-test
+
+#exe harp 
+#    : harp.cpp 
+#      harp_like.cpp 
+#      harp_like_multi.cpp 
+#      harp_likedump.cpp 
+#      harp_freq.cpp 
+#      harp_freq_stringmatch.cpp 
+#      harp_bqi.cpp
+#      harp_recomb.cpp
+#      #harp_allele_counts.cpp 
+#      harplib 
+#      harpconfiglib 
+#      boost_filesystem/<link>static 
+#    : <warnings>all #<warnings-as-errors>on  
+#      <variant>release
+#      #<variant>debug
+#    ;
+#
+#
+exe index_snp_table 
+    : index_snp_table.cpp harplib 
+    : <warnings>all <warnings-as-errors>on  
+    ;
+#
+#exe dgrp_to_poolhap 
+#    : dgrp_to_poolhap.cpp harplib 
+#    : <warnings>all <warnings-as-errors>on  
+#    ;
+#
+#exe pileup_to_hippo 
+#    : pileup_to_hippo.cpp harplib 
+#    : <warnings>all <warnings-as-errors>on  
+#    ;
+#
+#exe hippo_to_freqs
+#    : hippo_to_freqs.cpp harplib 
+#    : <warnings>all <warnings-as-errors>on  
+#    ;
+
+exe simreads 
+    : simreads.cpp simreadslib harplib boost_filesystem/<link>static 
+    : <warnings>all <warnings-as-errors>on  
+    ;
+
+exe simreads_raw
+    : simreads_raw.cpp mock_02_qual_dist.cpp harplib boost_filesystem/<link>static 
+    : <warnings>all <warnings-as-errors>on  
+    ;
+
+exe simreads_sf
+    : simreads_raw_pairedend_shortfragment.cpp mock_02_qual_dist.cpp harplib boost_filesystem/<link>static
+    : <warnings>all <warnings-as-errors>on
+    ;
+
+exe simreads_raw_pends
+    : simreads_raw_pairedend.cpp mock_02_qual_dist.cpp harplib boost_filesystem/<link>static
+    : <warnings>all <warnings-as-errors>on
+    ;
+
+exe simreads_forqs
+    : simreads_forqs.cpp simreadslib harplib PopulationSequenceMapper.cpp
+      boost_filesystem/<link>static ../forqs/src//libforqs/<link>static
+    : <warnings>all <warnings-as-errors>on <include>../forqs/src <variant>release
+    ;
+explicit simreads_forqs ;
+
+exe qual_hist
+    : qual_hist.cpp harplib 
+    : <warnings>all <warnings-as-errors>on  
+    ;
+
+exe qual_hist_fastq
+    : qual_hist_fastq.cpp harplib 
+    : <warnings>all <warnings-as-errors>on  
+    ;
+
+exe qual_hist_fastq_raw
+    : qual_hist_fastq_raw.cpp harplib 
+    : <warnings>all <warnings-as-errors>on  
+    ;
+
+exe qual_hist_error_rates
+    : qual_hist_error_rates.cpp simreadslib harplib
+    : <warnings>all <warnings-as-errors>on  
+    ;
+
+exe pair_dist_hist
+    : pair_dist_hist.cpp harplib 
+    : <warnings>all <warnings-as-errors>on  
+    ;
+
+exe extract_haplotypes
+    : extract_haplotypes.cpp harplib 
+    : <warnings>all <warnings-as-errors>on  
+    ;
+
+exe mock_02_logl_stats
+    : mock_02_logl_stats.cpp mock_02_qual_dist.cpp harplib 
+    : <warnings>all <warnings-as-errors>on  
+    ;
+
+exe preprocess_pcr_fastq
+    : preprocess_pcr_fastq.cpp harplib 
+    : <warnings>all <warnings-as-errors>on  
+    ;
+
+exe combine_mlst_hlk
+    : combine_mlst_hlk.cpp harplib 
+    : <warnings>all <warnings-as-errors>on  
+    ;
+
+
+install dist : 
+#    harp 
+    index_snp_table 
+    simreads 
+    simreads_raw
+    simreads_raw_pends
+    simreads_sf
+#   dgrp_to_poolhap 
+#    pileup_to_hippo 
+#    hippo_to_freqs 
+    qual_hist 
+    qual_hist_fastq
+    qual_hist_fastq_raw
+    qual_hist_error_rates 
+    pair_dist_hist 
+    extract_haplotypes
+    mock_02_logl_stats
+    preprocess_pcr_fastq
+    combine_mlst_hlk
+    : <location>bin ;
+
+
+install dist_simreads_forqs : simreads_forqs : <location>bin ;
+explicit dist_simreads_forqs ;
+
+
+lib harplib 
+    : BAMFile.cpp 
+      BaseQualityInterpreter.cpp
+      HaplotypeReference.cpp 
+      HaplotypeReferenceMulti.cpp 
+      HaplotypeLikelihoodCalculator.cpp 
+      HaplotypeLikelihoodRecord.cpp 
+      HaplotypeFrequencyEstimation.cpp
+      StandardErrorEstimation.cpp
+      harp_misc.cpp
+      bam 
+      boost_filesystem/<link>static
+    : <link>static <warnings>all <warnings-as-errors>on
+    ;
+
+lib harpconfiglib  # hack: boost 1.49 program_options has lexical_cast warning on panga gcc
+    : harp_config.cpp
+      boost_program_options/<link>static
+      boost_filesystem/<link>static
+    : <link>static <warnings>all
+    ;
+
+lib simreadslib
+    :   PiecewiseUniformDistribution.cpp
+        BaseQualityGenerator.cpp 
+        BaseQualityGenerator_Aux.cpp
+    : <link>static <warnings>all <warnings-as-errors>on
+    ;
+
+unit-test RegionTest : RegionTest.cpp ;
+unit-test BAMFileTest : BAMFileTest.cpp harplib ;
+unit-test HaplotypeReferenceTest : HaplotypeReferenceTest.cpp harplib ;
+unit-test HaplotypeReferenceMultiTest : HaplotypeReferenceMultiTest.cpp harplib ;
+unit-test HaplotypeLikelihoodCalculatorTest : HaplotypeLikelihoodCalculatorTest.cpp harplib ;
+unit-test HaplotypeLikelihoodRecordTest : HaplotypeLikelihoodRecordTest.cpp harplib ;
+unit-test HaplotypeFrequencyEstimationTest : HaplotypeFrequencyEstimationTest.cpp harplib ;
+unit-test harp_misc_test : harp_misc_test.cpp harplib ;
+#unit-test harp_config_test : harp_config_test.cpp harpconfiglib ;
+unit-test BaseQualityGeneratorTest : BaseQualityGeneratorTest.cpp simreadslib harplib ;
+unit-test PiecewiseUniformDistributionTest : PiecewiseUniformDistributionTest.cpp simreadslib ;
+unit-test BaseQualityInterpreterTest : BaseQualityInterpreterTest.cpp harplib ; 
+unit-test StandardErrorEstimationTest : StandardErrorEstimationTest.cpp harplib ;
+
+
+unit-test PopulationSequenceMapperTest 
+    : PopulationSequenceMapperTest.cpp
+      PopulationSequenceMapper.cpp
+      harplib
+      ../forqs/src//libforqs/<link>static
+    : <include>../forqs/src ;
+explicit PopulationSequenceMapperTest ;
+
+
+# external libraries
+
+lib bam : z : <name>bam <search>./samtools ;
+lib z : : <name>z ;
+lib boost_filesystem : boost_system : <name>boost_filesystem <search>$HOME/local/lib ;
+lib boost_system : : <name>boost_system <search>$HOME/local/lib ;
+lib boost_program_options : : <name>boost_program_options <search>$HOME/local/lib ;
+
+
+#
+# static link issue: 
+#   - by default, XCode gcc links to .dylib if it finds one, even if it found a static lib first in
+#     a different directory (!)
+#   - darwin toolset doesn't allow <link>static specification for searched libs
+#   - this means that */<link>static has no effect on OSX
+#
+# OSX workaround: remove .dylibs from ALL searched dirs
+# alternate OSX workaround: give full filename of lib*.a on g++ command line
+#
+# linux: boost_filesystem/<link>static does indeed link to the boost_*.a files
+#
+
+
+#
+# LIBRARY_PATH issue on hoffman2:  
+#   - LIBRARY_PATH not used by installed gcc (?)
+#
+# workaround: use <search>$HOME/local/lib for boost_*
+#
+#
+
+
+# first set of tools -- source now in ./deprecated 
+#exe haplike : haplike.cpp harplib ;
+#exe likedump : likedump.cpp harplib ;
+#exe likestat : likestat.cpp harplib ;
+#exe likestat2 : likestat2.cpp harplib ;
+
+
